@@ -1,6 +1,5 @@
 package com.example.climbingnav.auth.service;
 
-import com.example.climbingnav.auth.dto.KakaoTokenResponse;
 import com.example.climbingnav.auth.dto.KakaoUserInfo;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.entity.UserSocialAccount;
@@ -11,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -57,5 +55,11 @@ public class UserService {
         }
 
         return user;
+    }
+
+    public User getUserProfile(String userId) {
+        if (userId == null) return null;
+
+        return userRepository.findById(Long.valueOf(userId)).orElseThrow();
     }
 }

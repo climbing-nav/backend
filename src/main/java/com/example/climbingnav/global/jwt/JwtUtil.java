@@ -1,36 +1,70 @@
 package com.example.climbingnav.global.jwt;
 
-import com.example.climbingnav.auth.config.KakaoProperties;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
-@RequiredArgsConstructor
+@Component
 public class JwtUtil {
-    private final SecretKey key;
-    private final long expSeconds;
+    private final Key key;
+    private final long accessSeconds;   // e.g., 3600
+    private final long refreshSeconds;  // e.g., 2592000 (30d)
 
-    public JwtUtil(KakaoProperties props) {
-        byte[] keyBytes = Decoders.BASE64.decode(java.util.Base64.getEncoder().encodeToString(props.getJwtSecret().getBytes()));
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.expSeconds = props.getJwtExpSeconds();
+    public JwtUtil(@Value("${jwt.secret}") String secret,
+                   @Value("${jwt.access-seconds}") long accessSeconds,
+                   @Value("${jwt.refresh-seconds}") long refreshSeconds) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.accessSeconds = accessSeconds;
+        this.refreshSeconds = refreshSeconds;
     }
 
-    public String createToken(String subject, Map<String, Object> claims) {
+    public String createAccess(String subject, Map<String,Object> claims) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plusSeconds(accessSeconds)))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String createRefresh(String subject) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .setSubject(subject)
-                .setClaims(claims)
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plusSeconds(expSeconds)))
+                .setExpiration(Date.from(now.plusSeconds(refreshSeconds)))
+                .claim("typ", "refresh")
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public boolean validateRefresh(String jwtStr) {
+        try {
+            var c = parse(jwtStr);
+            return "refresh".equals(c.get("typ"));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public Claims parse(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build()
+                .parseClaimsJws(token).getBody();
+    }
+
+    public String getSubject(String token) {
+        return parse(token).getSubject();
     }
 }
