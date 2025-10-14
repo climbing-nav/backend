@@ -9,13 +9,16 @@ import com.example.climbingnav.global.jwt.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,6 +33,12 @@ public class KakaoAuthController {
 
     @Value("${kakao.frontend-redirect}")
     private String frontendRedirect;
+
+    @Value("${jwt.refresh-seconds}")
+    private String refreshSeconds;
+
+    @Value("${jwt.access-seconds}")
+    private String accessSeconds;
 
     @GetMapping("/login")
     public ResponseEntity<Void> kakaoLogin() {
@@ -51,12 +60,26 @@ public class KakaoAuthController {
         User user = userService.upsertFromKakao(kakaoUser);
 
         String refresh = jwtUtil.createRefresh(user.getId().toString());
+        String access = jwtUtil.createAccess(user.getId().toString(), Map.of());
 
-        String cookie = "REFRESH=" + refresh
-                + "; HttpOnly; Path=/; Max-Age=" + (30L * 24 * 3600)
-                + "; SameSite=None; Secure";
-        resp.addHeader("Set-Cookie", cookie);
+        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refresh)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(Duration.parse(refreshSeconds))
+                .build();
 
+        ResponseCookie accessCookie = ResponseCookie.from("ACCESS", access)
+                .httpOnly(false)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(Duration.parse(accessSeconds))
+                .build();
+
+        resp.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        resp.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", frontendRedirect)
