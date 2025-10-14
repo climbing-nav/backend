@@ -23,43 +23,48 @@ public class UserService {
         String provider = "kakao";
         String providerUserId = String.valueOf(kakaoUserInfo.getId());
 
-        Optional<UserSocialAccount> existUser = socialAccountRepository.
-                findByProviderAndProviderUserId(provider, providerUserId);
+        Optional<UserSocialAccount> socialAccount =
+                socialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId);
 
-        var account = kakaoUserInfo.getKakaoAccount();
-        var profile = (account != null) ? account.getProfile() : null;
-
-        String email     = (account != null) ? account.getEmail() : null;
-        String nickname  = (profile != null) ? profile.getNickname() : null;
-        String avatarUrl = (profile != null) ? profile.getProfileImageUrl() : null;
-
-        User.UserBuilder userBuilderBuilder = existUser
-                .map(link -> link.getUser().toBuilder())
-                .orElse(User.builder());
-
-        if (email != null)     userBuilderBuilder.email(email);
-        if (nickname != null)  userBuilderBuilder.nickname(nickname);
-        if (avatarUrl != null) userBuilderBuilder.avatarUrl(avatarUrl);
-
-        User user = userBuilderBuilder.build();
-
-        user = userRepository.save(user);
-
-        if (existUser.isEmpty()) {
-            socialAccountRepository.save(UserSocialAccount.builder()
-                    .user(user)
-                    .provider(provider)
-                    .providerUserId(providerUserId)
-                    .connectedAt(LocalDateTime.now())
-                    .build());
+        if (socialAccount.isPresent()) {
+            User user = socialAccount.get().getUser();
+            user.updateKakaoAccount(kakaoUserInfo.getKakaoAccount());
+            return userRepository.save(user);
         }
 
-        return user;
+        String email = Optional.ofNullable(kakaoUserInfo.getKakaoAccount())
+                .map(KakaoUserInfo.KakaoAccount::getEmail)
+                .orElse(null);
+
+        User user = (email != null)
+                ? userRepository.findByEmail(email).orElseGet(User::new)
+                : new User();
+
+        user.updateKakaoAccount(kakaoUserInfo.getKakaoAccount());
+        User savedUser = userRepository.save(user);
+
+        if(!socialAccountRepository.existsByProviderAndProviderUserId(provider, providerUserId)) {
+            saveSocialAccount(savedUser, provider, providerUserId);
+        }
+
+        return savedUser;
     }
 
     public User getUserProfile(String userId) {
         if (userId == null) return null;
 
-        return userRepository.findById(Long.valueOf(userId)).orElseThrow();
+        return userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    private void saveSocialAccount(User user, String provider, String providerUserId) {
+        UserSocialAccount socialAccount = UserSocialAccount.builder()
+                .user(user)
+                .provider(provider)
+                .providerUserId(providerUserId)
+                .connectedAt(LocalDateTime.now())
+                .build();
+
+        socialAccountRepository.save(socialAccount);
     }
 }
