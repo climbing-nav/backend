@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 public class JwtAccessFilter extends OncePerRequestFilter {
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

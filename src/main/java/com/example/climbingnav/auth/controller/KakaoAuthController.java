@@ -9,6 +9,7 @@ import com.example.climbingnav.global.jwt.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.convert.DurationStyle;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -18,12 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@RequestMapping("/auth/kakao")
+@RequestMapping("/api/auth/kakao")
 @RequiredArgsConstructor
 @RestController
 public class KakaoAuthController {
@@ -31,13 +31,13 @@ public class KakaoAuthController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    @Value("${kakao.frontend-redirect}")
+    @Value("${app.frontend.success-redirect}")
     private String frontendRedirect;
 
-    @Value("${jwt.refresh-seconds}")
+    @Value("${app.jwt.refresh-seconds}")
     private String refreshSeconds;
 
-    @Value("${jwt.access-seconds}")
+    @Value("${app.jwt.access-seconds}")
     private String accessSeconds;
 
     @GetMapping("/login")
@@ -67,7 +67,7 @@ public class KakaoAuthController {
                 .secure(true)
                 .sameSite("None")
                 .path("/")
-                .maxAge(Duration.parse(refreshSeconds))
+                .maxAge(DurationStyle.detectAndParse(accessSeconds))
                 .build();
 
         ResponseCookie accessCookie = ResponseCookie.from("ACCESS", access)
@@ -75,7 +75,7 @@ public class KakaoAuthController {
                 .secure(true)
                 .sameSite("None")
                 .path("/")
-                .maxAge(Duration.parse(accessSeconds))
+                .maxAge(DurationStyle.detectAndParse(refreshSeconds))
                 .build();
 
         resp.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());

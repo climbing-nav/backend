@@ -17,12 +17,12 @@ import java.util.Map;
 @Component
 public class JwtUtil {
     private final Key key;
-    private final long accessSeconds;   // e.g., 3600
-    private final long refreshSeconds;  // e.g., 2592000 (30d)
+    private final long accessSeconds;   // 3600
+    private final long refreshSeconds;  // 2592000 (30d)
 
-    public JwtUtil(@Value("${jwt.secret}") String secret,
-                   @Value("${jwt.access-seconds}") long accessSeconds,
-                   @Value("${jwt.refresh-seconds}") long refreshSeconds) {
+    public JwtUtil(@Value("${app.jwt.secret}") String secret,
+                   @Value("${app.jwt.access-seconds}") long accessSeconds,
+                   @Value("${app.jwt.refresh-seconds}") long refreshSeconds) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessSeconds = accessSeconds;
         this.refreshSeconds = refreshSeconds;
