@@ -14,7 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/token")
+@RequestMapping("/api/token")
 public class TokenController {
     private final JwtUtil jwtUtil;
 
