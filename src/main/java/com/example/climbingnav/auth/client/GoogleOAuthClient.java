@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class GoogleOAuthClient {
     private final String clientId, clientSecret, redirectUri, scope, authUri, tokenUri, userInfoUrl;
-    private final RestClient rest;
+    private final RestClient restClient;
 
     public GoogleOAuthClient(
             @Value("${google.client-id}") String clientId,
@@ -24,7 +24,7 @@ public class GoogleOAuthClient {
             @Value("${google.auth-uri:https://accounts.google.com/o/oauth2/v2/auth}") String authUri,
             @Value("${google.token-uri:https://oauth2.googleapis.com/token}") String tokenUri,
             @Value("${google.userinfo-uri:https://openidconnect.googleapis.com/v1/userinfo}") String userInfoUrl,
-            RestClient rest
+            RestClient restClient
     ) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -33,7 +33,7 @@ public class GoogleOAuthClient {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
         this.userInfoUrl = userInfoUrl;
-        this.rest = rest;
+        this.restClient = restClient;
     }
 
 
@@ -53,7 +53,7 @@ public class GoogleOAuthClient {
         form.add("redirect_uri", redirectUri);
         form.add("grant_type", "authorization_code");
 
-       return rest.post()
+       return restClient.post()
                .uri(tokenUri)
                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                .body(form)
@@ -62,7 +62,7 @@ public class GoogleOAuthClient {
     }
 
     public GoogleUserInfo fetchUserInfo(String accessToken) {
-        return rest.get()
+        return restClient.get()
                 .uri(userInfoUrl)
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()

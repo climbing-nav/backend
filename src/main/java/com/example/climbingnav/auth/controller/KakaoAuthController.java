@@ -1,7 +1,9 @@
 package com.example.climbingnav.auth.controller;
 
+import com.example.climbingnav.auth.client.OAuthResponseBuilder;
 import com.example.climbingnav.auth.dto.KakaoTokenResponse;
 import com.example.climbingnav.auth.dto.KakaoUserInfo;
+import com.example.climbingnav.auth.dto.OAuthTokenResponse;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.KakaoAuthService;
 import com.example.climbingnav.auth.service.UserService;
@@ -30,9 +32,10 @@ public class KakaoAuthController {
     private final KakaoAuthService kakaoAuthService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final OAuthResponseBuilder oAuthResponseBuilder;
 
     @Value("${app.frontend.success-redirect}")
-    private String frontendRedirect;
+    private String successRedirect;
 
     @Value("${app.jwt.refresh-seconds}")
     private String refreshSeconds;
@@ -54,36 +57,19 @@ public class KakaoAuthController {
     public ResponseEntity<Void> callback(@RequestParam("code") String code,
                                          @RequestParam(value = "state", required = false) String state,
                                          HttpServletResponse resp) {
-        KakaoTokenResponse token = kakaoAuthService.exchangeCodeForToken(code);
-        KakaoUserInfo kakaoUser = kakaoAuthService.fetchUserInfo(token.getAccessToken());
+        KakaoTokenResponse kakaoToken = kakaoAuthService.exchangeCodeForToken(code);
+        KakaoUserInfo kakaoUser = kakaoAuthService.fetchUserInfo(kakaoToken.getAccessToken());
 
         User user = userService.upsertFromKakao(kakaoUser);
 
         String refresh = jwtUtil.createRefresh(user.getId().toString());
-        String access = jwtUtil.createAccess(user.getId().toString(), Map.of());
+        String access = jwtUtil.createAccess(user.getId().toString(), Map.of(
+                "email", user.getEmail(),
+                "nickname", user.getNickname()
+        ));
 
-        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refresh)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(DurationStyle.detectAndParse(accessSeconds))
-                .build();
-
-        ResponseCookie accessCookie = ResponseCookie.from("ACCESS", access)
-                .httpOnly(false)
-                .secure(true)
-                .sameSite("None")
-                .path("/")
-                .maxAge(DurationStyle.detectAndParse(refreshSeconds))
-                .build();
-
-        resp.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-        resp.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", frontendRedirect)
-                .build();
+        OAuthTokenResponse tokens = new OAuthTokenResponse(access, refresh, accessSeconds, refreshSeconds);
+        return oAuthResponseBuilder.successRedirect(successRedirect, tokens);
     }
 
     private static Map<String, Object> getKakaoUserObjectMap(KakaoUserInfo kakaoUser) {
