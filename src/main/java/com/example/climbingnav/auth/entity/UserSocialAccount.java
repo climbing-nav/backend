@@ -25,7 +25,7 @@ public class UserSocialAccount {
     private User user;
 
     @Column(length = 20, nullable = false)
-    private String provider; // "kakao"
+    private String provider;
 
     @Column(length = 64, nullable = false)
     private String providerUserId;

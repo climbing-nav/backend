@@ -1,8 +1,10 @@
 package com.example.climbingnav.auth.controller;
 
 import com.example.climbingnav.auth.client.GoogleOAuthClient;
+import com.example.climbingnav.auth.client.OAuthResponseBuilder;
 import com.example.climbingnav.auth.dto.GoogleTokenResponse;
 import com.example.climbingnav.auth.dto.GoogleUserInfo;
+import com.example.climbingnav.auth.dto.OAuthTokenResponse;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.GoogleAccountService;
 import com.example.climbingnav.global.jwt.JwtUtil;
@@ -32,6 +34,7 @@ public class GoogleOAuthController {
     private final GoogleOAuthClient googleOAuthClient;
     private final GoogleAccountService googleAccountService;
     private final JwtUtil jwtUtil;
+    private final OAuthResponseBuilder oAuthResponseBuilder;
 
     @Value("${app.frontend.success-redirect}")
     private String successRedirect;
@@ -75,10 +78,10 @@ public class GoogleOAuthController {
             }
             stateStore.remove(state);
 
-            GoogleTokenResponse tokenResponse = googleOAuthClient.exchangeCodeForToken(code);
-            GoogleUserInfo userInfo = googleOAuthClient.fetchUserInfo(tokenResponse.accessToken());
+            GoogleTokenResponse googleToken = googleOAuthClient.exchangeCodeForToken(code);
+            GoogleUserInfo userInfo = googleOAuthClient.fetchUserInfo(googleToken.accessToken());
 
-            User user = googleAccountService.upsertFromGoogle(userInfo, tokenResponse);
+            User user = googleAccountService.upsertFromGoogle(userInfo, googleToken);
 
             String subject = String.valueOf(user.getId());
 
@@ -88,28 +91,8 @@ public class GoogleOAuthController {
                     "nickname", user.getNickname()
             ));
 
-            ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refreshToken)
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("None")
-                    .path("/")
-                    .maxAge(DurationStyle.detectAndParse(accessSeconds))
-                    .build();
-
-            ResponseCookie accessCookie = ResponseCookie.from("ACCESS", accessToken)
-                    .httpOnly(false)
-                    .secure(true)
-                    .sameSite("None")
-                    .path("/")
-                    .maxAge(DurationStyle.detectAndParse(refreshSeconds))
-                    .build();
-
-            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-            response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", successRedirect)
-                    .build();
+            OAuthTokenResponse tokens = new OAuthTokenResponse(accessToken, refreshToken, accessSeconds, refreshSeconds);
+            return oAuthResponseBuilder.successRedirect(successRedirect, tokens);
         } catch (Exception e) {
             response.setHeader("Location", failureRedirect + "?error=" + e.getMessage());
             return ResponseEntity.status(302).build();
