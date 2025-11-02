@@ -40,4 +40,10 @@ public class UserSocialAccount {
     private String refreshTokenCipher;
 
     private LocalDateTime refreshTokenExpiresAt;
+
+    public void updateScope(String newScope) {
+        if (newScope != null && !newScope.equals(this.scope)) {
+            this.scope = newScope;
+        }
+    }
 }
