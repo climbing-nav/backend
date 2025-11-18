@@ -4,7 +4,8 @@ import com.example.climbingnav.auth.dto.KakaoTokenResponse;
 import com.example.climbingnav.auth.dto.KakaoUserInfo;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.KakaoAuthService;
-import com.example.climbingnav.auth.service.UserService;
+import com.example.climbingnav.global.base.ApiResponse;
+import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import static com.example.climbingnav.global.base.types.ResponseCode.BAD_REQUEST;
+
 @RequestMapping("/api/auth/kakao")
 @RequiredArgsConstructor
 @RestController
 public class KakaoAuthController {
     private final KakaoAuthService kakaoAuthService;
-    private final UserService userService;
     private final JwtUtil jwtUtil;
 
     @Value("${app.jwt.refresh-seconds}")
@@ -32,11 +34,11 @@ public class KakaoAuthController {
     private String accessSeconds;
 
     @PostMapping("/exchange")
-    public ResponseEntity<Map<String, Object>> exchangeToken(@RequestBody Map<String, String> kakaoCodeInfo) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> exchangeToken(@RequestBody Map<String, String> kakaoCodeInfo) {
         String code = kakaoCodeInfo.get("code");
 
         if (code == null || code.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "empty_code"));
+            throw new CustomException(BAD_REQUEST, "code 값이 없습니다.");
         }
 
         KakaoTokenResponse kakaoToken = kakaoAuthService.exchangeCodeForToken(code);
@@ -53,16 +55,16 @@ public class KakaoAuthController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + access);
-
-        Map<String, Object> responseBody = Map.of(
-                "email", user.getEmail(),
-                "nickname", user.getNickname()
-        );
-
         headers.add("X-Access-Seconds", accessSeconds);
         headers.add("X-Refresh-Seconds", refreshSeconds);
 
-        return ResponseEntity.ok().headers(headers).body(responseBody);
+        Map<String, Object> responseBody = Map.of(
+                "email", user.getEmail(),
+                "nickname", user.getNickname(),
+                "avatar", user.getAvatarUrl()
+        );
+
+        return ResponseEntity.ok().headers(headers).body(ApiResponse.ok(responseBody));
     }
 
 }

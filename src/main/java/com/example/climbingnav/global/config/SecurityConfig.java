@@ -1,6 +1,6 @@
 package com.example.climbingnav.global.config;
 
-import com.example.climbingnav.auth.config.filter.JwtAccessFilter;
+import com.example.climbingnav.global.config.filter.JwtAccessFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

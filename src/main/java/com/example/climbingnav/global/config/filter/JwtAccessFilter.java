@@ -1,6 +1,7 @@
-package com.example.climbingnav.auth.config.filter;
+package com.example.climbingnav.global.config.filter;
 
 import com.example.climbingnav.global.jwt.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,10 +32,14 @@ public class JwtAccessFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String accessToken = header.substring(7);
 
-            var claims = jwtUtil.parse(accessToken);
+            if(!jwtUtil.validateToken(accessToken)) {
+                throw new ServletException("Invalid Access");
+            }
+
+            Claims claims = jwtUtil.parse(accessToken);
             String userId = claims.getSubject();
 
-            var auth = new UsernamePasswordAuthenticationToken(userId, null, List.of());
+            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

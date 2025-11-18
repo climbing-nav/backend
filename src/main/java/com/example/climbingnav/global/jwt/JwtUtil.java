@@ -1,9 +1,6 @@
 package com.example.climbingnav.global.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -66,5 +63,20 @@ public class JwtUtil {
 
     public String getSubject(String token) {
         return parse(token).getSubject();
+    }
+
+    public boolean validateToken(String jwtToken) {
+        Jws<Claims> claimsJws = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
+
+        return !claimsJws.getBody().getExpiration().before(new Date());
+    }
+
+    public boolean checkExpired(String token){
+        Jws<Claims> claimsJws = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token);
+
+        return claimsJws.getBody().getExpiration().before(new Date());
     }
 }
