@@ -4,6 +4,9 @@ import com.example.climbingnav.auth.dto.GoogleTokenResponse;
 import com.example.climbingnav.auth.dto.GoogleUserInfo;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.GoogleAuthService;
+import com.example.climbingnav.global.base.ApiResponse;
+import com.example.climbingnav.global.base.types.ResponseCode;
+import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,10 +34,10 @@ public class GoogleOAuthController {
     private String refreshSeconds;
 
     @PostMapping("/exchange")
-    public ResponseEntity<Map<String, Object>> exchange(@RequestBody Map<String, String> body) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> exchange(@RequestBody Map<String, String> body) {
         String code = body.get("code");
         if (!StringUtils.hasText(code)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "empty_code"));
+            throw new CustomException(ResponseCode.BAD_REQUEST, "code 값이 없습니다.");
         }
 
         GoogleTokenResponse googleToken = googleAuthService.exchangeCodeForToken(code);
@@ -59,12 +62,11 @@ public class GoogleOAuthController {
         headers.add("X-Refresh-Seconds", refreshSeconds);
 
         Map<String, Object> responseBody = Map.of(
-                "userId", user.getId(),
                 "nickname", user.getNickname(),
                 "email", user.getEmail(),
                 "avatar", user.getAvatarUrl()
         );
 
-        return ResponseEntity.ok().headers(headers).body(responseBody);
+        return ResponseEntity.ok().headers(headers).body(ApiResponse.ok(responseBody));
     }
 }
