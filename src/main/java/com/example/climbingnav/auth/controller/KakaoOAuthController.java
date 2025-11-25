@@ -10,12 +10,14 @@ import com.example.climbingnav.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static com.example.climbingnav.global.base.types.ResponseCode.BAD_REQUEST;
@@ -23,7 +25,7 @@ import static com.example.climbingnav.global.base.types.ResponseCode.BAD_REQUEST
 @RequestMapping("/api/auth/kakao")
 @RequiredArgsConstructor
 @RestController
-public class KakaoAuthController {
+public class KakaoOAuthController {
     private final KakaoAuthService kakaoAuthService;
     private final JwtUtil jwtUtil;
 
@@ -46,14 +48,21 @@ public class KakaoAuthController {
 
         User user = kakaoAuthService.upsertFromKakao(kakaoUser);
 
-        // refresh token 저장 방식 결정 후 로직 구현 예정
-//        String refresh = jwtUtil.createRefresh(user.getId().toString());
+        String refresh = jwtUtil.createRefresh(user.getId().toString());
         String access = jwtUtil.createAccess(user.getId().toString(), Map.of(
                 "email", user.getEmail(),
                 "nickname", user.getNickname()
         ));
 
+        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refresh)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.parse(refreshSeconds))
+                .build();
+
         HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, refreshCookie.toString());
         headers.add("Authorization", "Bearer " + access);
         headers.add("X-Access-Seconds", accessSeconds);
         headers.add("X-Refresh-Seconds", refreshSeconds);
@@ -64,7 +73,8 @@ public class KakaoAuthController {
                 "avatar", user.getAvatarUrl()
         );
 
-        return ResponseEntity.ok().headers(headers).body(ApiResponse.ok(responseBody));
+        return ResponseEntity.ok().headers(headers)
+                .body(ApiResponse.ok(responseBody));
     }
 
 }

@@ -39,6 +39,8 @@ public class JwtAccessFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.parse(accessToken);
             String userId = claims.getSubject();
 
+            log.info("userId={}, 해당 유저 filter 진입", userId);
+
             Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
