@@ -11,6 +11,7 @@ import com.example.climbingnav.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -46,18 +48,22 @@ public class GoogleOAuthController {
 
         User user = googleAuthService.upsertFromGoogle(userInfo, googleToken);
 
-        String subject = String.valueOf(user.getId());
-        // refresh token 저장 방식 결정 후 로직 구현 예정
-//        String refreshToken = jwtUtil.createRefresh(subject);
-        String accessToken  = jwtUtil.createAccess(subject, Map.of(
+        String refreshToken = jwtUtil.createRefresh(user.getId().toString());
+        String accessToken  = jwtUtil.createAccess(user.getId().toString(), Map.of(
                 "email", user.getEmail(),
                 "nickname", user.getNickname()
         ));
 
+        ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.parse(refreshSeconds))
+                .build();
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
-//        headers.add("X-Refresh-Token", refreshToken);
-
+        headers.add(HttpHeaders.COOKIE, refreshCookie.toString());
         headers.add("X-Access-Seconds", accessSeconds);
         headers.add("X-Refresh-Seconds", refreshSeconds);
 
