@@ -4,6 +4,7 @@ import com.example.climbingnav.auth.dto.GoogleTokenResponse;
 import com.example.climbingnav.auth.dto.GoogleUserInfo;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.GoogleAuthService;
+import com.example.climbingnav.auth.service.RefreshTokenService;
 import com.example.climbingnav.global.base.ApiResponse;
 import com.example.climbingnav.global.base.types.ResponseCode;
 import com.example.climbingnav.global.exception.CustomException;
@@ -28,12 +29,13 @@ import java.util.Map;
 public class GoogleOAuthController {
     private final GoogleAuthService googleAuthService;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${app.jwt.access-seconds}")
     private String accessSeconds;
 
     @Value("${app.jwt.refresh-seconds}")
-    private String refreshSeconds;
+    private long refreshSeconds;
 
     @PostMapping("/exchange")
     public ResponseEntity<ApiResponse<Map<String, Object>>> exchange(@RequestBody Map<String, String> body) {
@@ -54,18 +56,20 @@ public class GoogleOAuthController {
                 "nickname", user.getNickname()
         ));
 
+        refreshTokenService.saveRefreshToken(user.getId(), refreshToken);
+
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(Duration.parse(refreshSeconds))
+                .maxAge(Duration.ofSeconds(refreshSeconds))
                 .build();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add(HttpHeaders.COOKIE, refreshCookie.toString());
         headers.add("X-Access-Seconds", accessSeconds);
-        headers.add("X-Refresh-Seconds", refreshSeconds);
+        headers.add("X-Refresh-Seconds", String.valueOf(refreshSeconds));
 
         Map<String, Object> responseBody = Map.of(
                 "nickname", user.getNickname(),

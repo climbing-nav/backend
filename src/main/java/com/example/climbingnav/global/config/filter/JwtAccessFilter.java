@@ -1,5 +1,7 @@
 package com.example.climbingnav.global.config.filter;
 
+import com.example.climbingnav.global.base.types.ResponseCode;
+import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -33,7 +35,7 @@ public class JwtAccessFilter extends OncePerRequestFilter {
             String accessToken = header.substring(7);
 
             if(!jwtUtil.validateToken(accessToken)) {
-                throw new ServletException("Invalid Access");
+                throw new CustomException(ResponseCode.UNAUTHORIZED, "Access token이 유효하지 않습니다.");
             }
 
             Claims claims = jwtUtil.parse(accessToken);
@@ -41,7 +43,7 @@ public class JwtAccessFilter extends OncePerRequestFilter {
 
             log.info("userId={}, 해당 유저 filter 진입", userId);
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of());
+            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
