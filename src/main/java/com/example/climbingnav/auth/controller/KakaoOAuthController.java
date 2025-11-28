@@ -4,6 +4,7 @@ import com.example.climbingnav.auth.dto.KakaoTokenResponse;
 import com.example.climbingnav.auth.dto.KakaoUserInfo;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.KakaoAuthService;
+import com.example.climbingnav.auth.service.RefreshTokenService;
 import com.example.climbingnav.global.base.ApiResponse;
 import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
@@ -28,9 +29,10 @@ import static com.example.climbingnav.global.base.types.ResponseCode.BAD_REQUEST
 public class KakaoOAuthController {
     private final KakaoAuthService kakaoAuthService;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${app.jwt.refresh-seconds}")
-    private String refreshSeconds;
+    private long refreshSeconds;
 
     @Value("${app.jwt.access-seconds}")
     private String accessSeconds;
@@ -54,18 +56,20 @@ public class KakaoOAuthController {
                 "nickname", user.getNickname()
         ));
 
+        refreshTokenService.saveRefreshToken(user.getId(), refresh);
+
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refresh)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(Duration.parse(refreshSeconds))
+                .maxAge(Duration.ofSeconds(refreshSeconds))
                 .build();
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, refreshCookie.toString());
         headers.add("Authorization", "Bearer " + access);
         headers.add("X-Access-Seconds", accessSeconds);
-        headers.add("X-Refresh-Seconds", refreshSeconds);
+        headers.add("X-Refresh-Seconds", String.valueOf(refreshSeconds));
 
         Map<String, Object> responseBody = Map.of(
                 "email", user.getEmail(),
