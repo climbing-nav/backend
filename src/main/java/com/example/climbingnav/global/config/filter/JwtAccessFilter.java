@@ -1,5 +1,8 @@
 package com.example.climbingnav.global.config.filter;
 
+import com.example.climbingnav.auth.entity.User;
+import com.example.climbingnav.auth.repository.UserRepository;
+import com.example.climbingnav.global.base.UserVo;
 import com.example.climbingnav.global.base.types.ResponseCode;
 import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
@@ -24,6 +27,7 @@ import java.util.List;
 @Component
 public class JwtAccessFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -35,15 +39,23 @@ public class JwtAccessFilter extends OncePerRequestFilter {
             String accessToken = header.substring(7);
 
             if(!jwtUtil.validateToken(accessToken)) {
-                throw new CustomException(ResponseCode.UNAUTHORIZED, "Access token이 유효하지 않습니다.");
+                throw new ServletException("Invalid access");
             }
 
             Claims claims = jwtUtil.parse(accessToken);
             String userId = claims.getSubject();
+            User user = userRepository.findById(Long.valueOf(userId))
+                            .orElseThrow(() -> new RuntimeException("User not found.."));
 
-            log.info("userId={}, 해당 유저 filter 진입", userId);
+            UserVo userVo = new UserVo(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getNickname()
+            );
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null);
+            log.info("userId={}, 해당 유저 filter 진입", user.getEmail());
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(userVo, null);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

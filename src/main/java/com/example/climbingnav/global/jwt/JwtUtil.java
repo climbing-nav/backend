@@ -1,7 +1,9 @@
 package com.example.climbingnav.global.jwt;
 
+import com.example.climbingnav.global.base.UserVo;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class JwtUtil {
     private final Key key;
@@ -66,17 +69,13 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String jwtToken) {
-        Jws<Claims> claimsJws = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
+        try {
+            Jws<Claims> claimsJws = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
 
-        return !claimsJws.getBody().getExpiration().before(new Date());
-    }
-
-    public boolean checkExpired(String token){
-        Jws<Claims> claimsJws = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token);
-
-        return claimsJws.getBody().getExpiration().before(new Date());
+            return !claimsJws.getBody().getExpiration().before(new Date());
+        } catch (JwtException e) {
+            log.info("Invalid JWT Token", e);
+            return false;
+        }
     }
 }

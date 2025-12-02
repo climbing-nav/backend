@@ -1,6 +1,7 @@
 package com.example.climbingnav.auth.entity;
 
 import com.example.climbingnav.auth.dto.KakaoUserInfo;
+import com.example.climbingnav.global.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.AuditOverride;
