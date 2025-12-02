@@ -1,4 +1,4 @@
-package com.example.climbingnav.auth.entity;
+package com.example.climbingnav.global.base;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
