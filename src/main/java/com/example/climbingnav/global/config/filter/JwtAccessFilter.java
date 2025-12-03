@@ -50,7 +50,8 @@ public class JwtAccessFilter extends OncePerRequestFilter {
             UserVo userVo = new UserVo(
                     user.getId(),
                     user.getEmail(),
-                    user.getNickname()
+                    user.getNickname(),
+                    user.getAvatarUrl()
             );
 
             log.info("userId={}, 해당 유저 filter 진입", user.getEmail());
