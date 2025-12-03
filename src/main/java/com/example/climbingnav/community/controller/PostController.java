@@ -1,5 +1,6 @@
 package com.example.climbingnav.community.controller;
 
+import com.example.climbingnav.community.dto.PostDetailResponse;
 import com.example.climbingnav.community.dto.PostSaveRequest;
 import com.example.climbingnav.community.service.PostService;
 import com.example.climbingnav.global.base.ApiResponse;
@@ -29,5 +30,11 @@ public class PostController {
         postService.createPost(userVo, postSaveRequest, null);
 
         return ApiResponse.ok(null);
+    }
+
+    @GetMapping("/{postId}")
+    public ApiResponse<PostDetailResponse> getOnePost(@AuthenticationPrincipal UserVo userVo,
+                                                    @PathVariable Long postId) {
+        return ApiResponse.ok(postService.getPostDetail(userVo, postId));
     }
 }
