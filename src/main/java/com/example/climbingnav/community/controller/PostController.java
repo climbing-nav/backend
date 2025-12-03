@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequestMapping("/api/posts")
@@ -23,13 +24,13 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping(value = "/save", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ApiResponse<Void> savePost(@AuthenticationPrincipal UserVo userVo,
+    public ApiResponse<Map<String, String>> savePost(@AuthenticationPrincipal UserVo userVo,
                                       @RequestBody @Valid PostSaveRequest postSaveRequest,
                                       @RequestPart(value = "files", required = false)List<MultipartFile> files) {
 
-        postService.createPost(userVo, postSaveRequest, null);
+        Long postId = postService.createPost(userVo, postSaveRequest, null);
 
-        return ApiResponse.ok(null);
+        return ApiResponse.ok(Map.of("postId", postId.toString()));
     }
 
     @GetMapping("/{postId}")

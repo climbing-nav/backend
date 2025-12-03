@@ -27,7 +27,7 @@ public class PostService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public void createPost(UserVo userVo, PostSaveRequest postSaveRequest, List<MultipartFile> files) {
+    public Long createPost(UserVo userVo, PostSaveRequest postSaveRequest, List<MultipartFile> files) {
         Category category = categoryRepository.findByCode(postSaveRequest.boardCode())
                 .orElseThrow(() -> new CustomException(ResponseCode.BAD_REQUEST, "존재하지 않는 게시판입니다."));
 
@@ -51,6 +51,7 @@ public class PostService {
         }
 
         Post savedPost = postRepository.save(post);
+        return savedPost.getId();
     }
 
     @Transactional(readOnly = true)
