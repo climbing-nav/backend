@@ -2,6 +2,7 @@ package com.example.climbingnav.community.controller;
 
 import com.example.climbingnav.community.dto.PostDetailResponse;
 import com.example.climbingnav.community.dto.PostSaveRequest;
+import com.example.climbingnav.community.dto.PostSliceResponse;
 import com.example.climbingnav.community.service.PostService;
 import com.example.climbingnav.global.base.ApiResponse;
 import com.example.climbingnav.global.base.UserVo;
@@ -34,8 +35,24 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ApiResponse<PostDetailResponse> getOnePost(@AuthenticationPrincipal UserVo userVo,
-                                                    @PathVariable Long postId) {
-        return ApiResponse.ok(postService.getPostDetail(userVo, postId));
+    public ApiResponse<PostDetailResponse> getOnePost(@PathVariable Long postId) {
+        return ApiResponse.ok(postService.getPostDetail(postId));
+    }
+
+    @GetMapping
+    public ApiResponse<PostSliceResponse> getAllPosts(@RequestParam(required = false) Long cursorId) {
+        return ApiResponse.ok(postService.getPostsList(cursorId));
+    }
+
+    @PatchMapping("/{postId}")
+    public ApiResponse<?> updatePost(@PathVariable Long postId,
+                                     @AuthenticationPrincipal UserVo userVo) {
+
+        return null;
+    }
+
+    @DeleteMapping("/{postId}")
+    public ApiResponse<?> deletePost(@PathVariable Long postId) {
+        return null;
     }
 }

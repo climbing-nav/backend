@@ -5,7 +5,9 @@ import com.example.climbingnav.auth.repository.UserRepository;
 import com.example.climbingnav.community.Repository.CategoryRepository;
 import com.example.climbingnav.community.Repository.PostRepository;
 import com.example.climbingnav.community.dto.PostDetailResponse;
+import com.example.climbingnav.community.dto.PostListResponse;
 import com.example.climbingnav.community.dto.PostSaveRequest;
+import com.example.climbingnav.community.dto.PostSliceResponse;
 import com.example.climbingnav.community.entity.Category;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.constants.StatusType;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -55,7 +58,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostDetailResponse getPostDetail(UserVo userVo, Long postId) {
+    public PostDetailResponse getPostDetail(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "조회하신 게시글을 찾을 수 없습니다."));
 
@@ -67,7 +70,36 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public void getPostsList() {
+    public PostSliceResponse getPostsList(Long cursorId) {
+        List<Post> posts;
 
+        if (cursorId == null) {
+            posts = postRepository.findTop21ByOrderByIdDesc();
+        } else {
+            posts = postRepository.findTop21ByIdLessThanOrderByIdDesc(cursorId);
+        }
+
+        int size = 20;
+        boolean hasNext = posts.size() > size;
+        if (hasNext) {
+            posts = posts.subList(0, size);
+        }
+
+        Long nextCursorId = hasNext ? posts.get(posts.size() + 1).getId() : null;
+
+        List<PostListResponse> postList = posts.stream()
+                .map(p -> new PostListResponse(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getUser().getNickname(),
+                        p.getUser().getAvatarUrl(),
+                        p.getContent(),
+                        p.getLikes().size(),
+                        p.getComments().size(),
+                        p.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                ))
+                .toList();
+
+        return new PostSliceResponse(postList, hasNext, nextCursorId);
     }
 }
