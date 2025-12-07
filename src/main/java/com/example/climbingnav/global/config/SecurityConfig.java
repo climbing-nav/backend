@@ -29,7 +29,7 @@ public class SecurityConfig {
                         SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/kakao/**", "/api/token/refresh",
-                                "/api/auth/google/**", "/api/auth/logout", "/h2-console/**")
+                                "/api/auth/google/**", "/api/auth/logout")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(accessFilter, UsernamePasswordAuthenticationFilter.class);
