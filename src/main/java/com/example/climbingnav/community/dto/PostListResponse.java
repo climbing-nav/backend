@@ -1,7 +1,7 @@
 package com.example.climbingnav.community.dto;
 
 public record PostListResponse(
-        Long postId,
+        Long id,
        String title,
        String author,
        String avatarUrl,
