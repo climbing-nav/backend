@@ -13,11 +13,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -53,7 +55,7 @@ public class JwtAccessFilter extends OncePerRequestFilter {
 
             log.info("userId={}, 해당 유저 filter 진입", user.getEmail());
 
-            Authentication auth = new UsernamePasswordAuthenticationToken(userVo, null);
+            Authentication auth = new UsernamePasswordAuthenticationToken(userVo, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
