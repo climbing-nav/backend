@@ -3,8 +3,6 @@ package com.example.climbingnav.global.config.filter;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.repository.UserRepository;
 import com.example.climbingnav.global.base.UserVo;
-import com.example.climbingnav.global.base.types.ResponseCode;
-import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor

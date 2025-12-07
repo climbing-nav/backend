@@ -27,7 +27,7 @@ public class PostController {
     public ApiResponse<Map<String, String>> savePost(@AuthenticationPrincipal UserVo userVo,
                                       @RequestBody @Valid PostSaveRequest postSaveRequest,
                                       @RequestPart(value = "files", required = false)List<MultipartFile> files) {
-
+        log.info("게시글 작성 api 호출 성공! usernickname:{}", userVo.nickname());
         Long postId = postService.createPost(userVo, postSaveRequest, null);
 
         return ApiResponse.ok(Map.of("postId", postId.toString()));
