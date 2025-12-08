@@ -4,6 +4,7 @@ import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.RefreshTokenService;
 import com.example.climbingnav.auth.service.UserService;
 import com.example.climbingnav.global.base.ApiResponse;
+import com.example.climbingnav.global.base.UserVo;
 import com.example.climbingnav.global.base.types.ResponseCode;
 import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
@@ -48,8 +49,8 @@ public class TokenController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@AuthenticationPrincipal(expression = "principal") String userId) {
-        refreshTokenService.deleteRefreshToken(Long.valueOf(userId));
+    public ResponseEntity<?> logout(@AuthenticationPrincipal(expression = "principal") UserVo userVo) {
+        refreshTokenService.deleteRefreshToken(userVo.userId());
 
         return ResponseEntity.ok().body(ApiResponse.ok("logout success!"));
     }
