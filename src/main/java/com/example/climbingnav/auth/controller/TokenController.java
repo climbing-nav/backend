@@ -49,7 +49,7 @@ public class TokenController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@AuthenticationPrincipal(expression = "principal") UserVo userVo) {
+    public ResponseEntity<?> logout(@AuthenticationPrincipal UserVo userVo) {
         refreshTokenService.deleteRefreshToken(userVo.userId());
 
         return ResponseEntity.ok().body(ApiResponse.ok("logout success!"));
