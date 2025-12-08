@@ -49,4 +49,8 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private StatusType status = StatusType.ACTIVE;
+
+    public void ChangeStatus(StatusType statusType) {
+        this.status = statusType;
+    }
 }

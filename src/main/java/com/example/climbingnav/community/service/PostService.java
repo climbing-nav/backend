@@ -70,13 +70,19 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostSliceResponse getPostsList(Long cursorId) {
+    public PostSliceResponse getPostsList(String boardCode, Long cursorId) {
         List<Post> posts;
 
+        boolean noCategory = (boardCode == null || boardCode.isBlank());
+
         if (cursorId == null) {
-            posts = postRepository.findTop21ByOrderByIdDesc();
+            posts = noCategory
+                    ? postRepository.findTop21ByOrderByIdDesc()
+                    : postRepository.findTop21ByCategory_CodeOrderByIdDesc(boardCode);
         } else {
-            posts = postRepository.findTop21ByIdLessThanOrderByIdDesc(cursorId);
+            posts = noCategory
+                    ? postRepository.findTop21ByIdLessThanOrderByIdDesc(cursorId)
+                    : postRepository.findTop21ByCategory_CodeAndIdLessThanOrderByIdDesc(boardCode, cursorId);
         }
 
         int size = 20;
@@ -101,5 +107,19 @@ public class PostService {
                 .toList();
 
         return new PostSliceResponse(postList, hasNext, nextCursorId);
+    }
+
+    @Transactional
+    public String updatePostStatusToDelete(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "존재하지 않는 게시글입니다."));
+
+        if(post.getStatus() == StatusType.DELETED) {
+            throw new CustomException(ResponseCode.NOT_FOUND, "조회하신 게시글은 이미 삭제되었습니다.");
+        }
+
+        post.ChangeStatus(StatusType.DELETED);
+
+        return "success";
     }
 }
