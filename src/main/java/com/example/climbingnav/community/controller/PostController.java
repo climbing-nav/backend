@@ -28,7 +28,6 @@ public class PostController {
     public ApiResponse<Map<String, String>> savePost(@AuthenticationPrincipal UserVo userVo,
                                       @RequestBody @Valid PostSaveRequest postSaveRequest,
                                       @RequestPart(value = "files", required = false)List<MultipartFile> files) {
-        log.info("게시글 작성 api 호출 성공! usernickname:{}", userVo.nickname());
         Long postId = postService.createPost(userVo, postSaveRequest, null);
 
         return ApiResponse.ok(Map.of("postId", postId.toString()));
@@ -40,8 +39,9 @@ public class PostController {
     }
 
     @GetMapping
-    public ApiResponse<PostSliceResponse> getAllPosts(@RequestParam(required = false) Long cursorId) {
-        return ApiResponse.ok(postService.getPostsList(cursorId));
+    public ApiResponse<PostSliceResponse> getAllPosts(@RequestParam(required = false) Long cursorId,
+                                                      @RequestParam(required = false) String boardCode) {
+        return ApiResponse.ok(postService.getPostsList(boardCode, cursorId));
     }
 
     @PatchMapping("/{postId}")
@@ -52,7 +52,8 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<?> deletePost(@PathVariable Long postId) {
-        return null;
+    public ApiResponse<String> deletePost(@PathVariable Long postId) {
+        return ApiResponse.ok(postService.updatePostStatusToDelete(postId));
+
     }
 }
