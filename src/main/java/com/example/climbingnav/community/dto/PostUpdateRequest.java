@@ -1,7 +1,14 @@
 package com.example.climbingnav.community.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record PostUpdateRequest(
-        Long id,
+        @NotBlank
         String title,
-        String content
+
+        @NotBlank
+        String content,
+
+        @NotBlank
+        String boardCode
 ) {}

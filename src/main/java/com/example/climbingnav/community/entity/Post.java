@@ -50,7 +50,13 @@ public class Post extends BaseEntity {
     @Builder.Default
     private StatusType status = StatusType.ACTIVE;
 
-    public void ChangeStatus(StatusType statusType) {
+    public void changeStatus(StatusType statusType) {
         this.status = statusType;
+    }
+
+    public void update(String title, String content, String code) {
+        this.title = title;
+        this.content = content;
+        this.category.changeCode(code);
     }
 }
