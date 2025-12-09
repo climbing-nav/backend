@@ -97,22 +97,32 @@ public class PostService {
     }
 
     @Transactional
-    public String updatePostStatusToDelete(Long postId) {
+    public String updatePostStatusToDelete(Long postId, UserVo userVo) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "존재하지 않는 게시글입니다."));
+
+        if(!post.getUser().getEmail().equals(userVo.email())) {
+            throw new CustomException(ResponseCode.FORBIDDEN, "해당 게시글 작성자만 삭제가 가능합니다.");
+        }
 
         if(post.getStatus() == StatusType.DELETED) {
             throw new CustomException(ResponseCode.NOT_FOUND, "조회하신 게시글은 이미 삭제되었습니다.");
         }
 
-        post.ChangeStatus(StatusType.DELETED);
+        post.changeStatus(StatusType.DELETED);
 
         return "success";
     }
 
     @Transactional
-    public void updatePost(UserVo userVo, PostUpdateRequest postUpdateRequest) {
-        Post post = postRepository.findById(postUpdateRequest.id())
-                .orElseThrow();
+    public void updatePost(Long postId, UserVo userVo, PostUpdateRequest postUpdateRequest) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "존재하지 않는 게시글입니다."));
+
+        if(!post.getUser().getEmail().equals(userVo.email())) {
+            throw new CustomException(ResponseCode.FORBIDDEN, "해당 게시글의 작성자만 수정이 가능합니다.");
+        }
+
+        post.update(postUpdateRequest.title(), postUpdateRequest.content(), postUpdateRequest.boardCode());
     }
 }

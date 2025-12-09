@@ -3,6 +3,7 @@ package com.example.climbingnav.community.controller;
 import com.example.climbingnav.community.dto.PostDetailResponse;
 import com.example.climbingnav.community.dto.PostSaveRequest;
 import com.example.climbingnav.community.dto.PostSliceResponse;
+import com.example.climbingnav.community.dto.PostUpdateRequest;
 import com.example.climbingnav.community.service.PostService;
 import com.example.climbingnav.global.base.ApiResponse;
 import com.example.climbingnav.global.base.UserVo;
@@ -46,14 +47,17 @@ public class PostController {
 
     @PatchMapping("/{postId}")
     public ApiResponse<?> update(@PathVariable Long postId,
-                                     @AuthenticationPrincipal UserVo userVo) {
+                                 @AuthenticationPrincipal UserVo userVo,
+                                 @RequestBody PostUpdateRequest postUpdateRequest) {
+        postService.updatePost(postId, userVo, postUpdateRequest);
 
         return null;
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<String> delete(@PathVariable Long postId) {
-        return ApiResponse.ok(postService.updatePostStatusToDelete(postId));
+    public ApiResponse<String> delete(@PathVariable Long postId,
+                                      @AuthenticationPrincipal UserVo userVo) {
+        return ApiResponse.ok(postService.updatePostStatusToDelete(postId, userVo));
 
     }
 }

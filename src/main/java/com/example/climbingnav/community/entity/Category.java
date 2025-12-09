@@ -1,5 +1,6 @@
 package com.example.climbingnav.community.entity;
 
+import com.example.climbingnav.community.entity.constants.StatusType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,4 +19,8 @@ public class Category {
 
     @Column(length = 30, nullable = false)
     private String code;
+
+    public void changeCode(String code) {
+        this.code = code;
+    }
 }
