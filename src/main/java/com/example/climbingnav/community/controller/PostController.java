@@ -45,14 +45,14 @@ public class PostController {
     }
 
     @PatchMapping("/{postId}")
-    public ApiResponse<?> updatePost(@PathVariable Long postId,
+    public ApiResponse<?> update(@PathVariable Long postId,
                                      @AuthenticationPrincipal UserVo userVo) {
 
         return null;
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<String> deletePost(@PathVariable Long postId) {
+    public ApiResponse<String> delete(@PathVariable Long postId) {
         return ApiResponse.ok(postService.updatePostStatusToDelete(postId));
 
     }
