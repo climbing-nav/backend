@@ -89,6 +89,7 @@ public class PostService {
                         p.getContent(),
                         p.getLikes().size(),
                         p.getComments().size(),
+                        p.getCategory().getName(),
                         p.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 ))
                 .toList();

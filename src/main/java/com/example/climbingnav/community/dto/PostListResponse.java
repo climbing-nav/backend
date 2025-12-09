@@ -8,5 +8,6 @@ public record PostListResponse(
        String content,
        int likeCount,
        int commentsCount,
+       String categoryName,
        String createdAt
 ) {}
