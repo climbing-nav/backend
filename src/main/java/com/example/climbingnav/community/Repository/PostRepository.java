@@ -1,16 +1,32 @@
 package com.example.climbingnav.community.Repository;
 
-import com.example.climbingnav.community.entity.Category;
 import com.example.climbingnav.community.entity.Post;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findTop21ByOrderByIdDesc();
 
-    List<Post> findTop21ByIdLessThanOrderByIdDesc(Long id);
+//    @Query("""
+//        SELECT p FROM Post  p
+//            WHERE p.status = com.example.climbingnav.community.entity.constants.StatusType.ACTIVE
+//                AND (:cursorId IS NULL OR p.id < :cursorId)
+//            ORDER BY p.id DESC
+//    """)
+//    List<Post> findActivePosts(Long cursorId, Pageable pageable);
 
-    List<Post> findTop21ByCategory_CodeOrderByIdDesc(String code);
-    List<Post> findTop21ByCategory_CodeAndIdLessThanOrderByIdDesc(String code, Long id);
+    @Query("""
+    SELECT p FROM Post p
+    WHERE (:code IS NULL OR p.category.code = :code)
+        AND (p.status = com.example.climbingnav.community.entity.constants.StatusType.ACTIVE)
+      AND (:cursorId IS NULL OR p.id < :cursorId)
+    ORDER BY p.id DESC
+    """)
+    List<Post> findActivePostsByCategory(
+            String code,
+            Long cursorId,
+            Pageable pageable
+    );
 }
