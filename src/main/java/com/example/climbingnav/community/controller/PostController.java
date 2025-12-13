@@ -1,9 +1,6 @@
 package com.example.climbingnav.community.controller;
 
-import com.example.climbingnav.community.dto.PostDetailResponse;
-import com.example.climbingnav.community.dto.PostSaveRequest;
-import com.example.climbingnav.community.dto.PostSliceResponse;
-import com.example.climbingnav.community.dto.PostUpdateRequest;
+import com.example.climbingnav.community.dto.post.*;
 import com.example.climbingnav.community.service.PostService;
 import com.example.climbingnav.global.base.ApiResponse;
 import com.example.climbingnav.global.base.UserVo;
@@ -45,6 +42,14 @@ public class PostController {
         return ApiResponse.ok(postService.getPostsList(boardCode, cursorId));
     }
 
+    @GetMapping("/my-posts")
+    public ApiResponse<?> viewMyWriting(@AuthenticationPrincipal UserVo userVo) {
+        // 내가 쓴 게시글 목록 조회
+        String content = postService.getMyPostsList(userVo);
+
+        return null;
+    }
+
     @PatchMapping("/{postId}")
     public ApiResponse<?> update(@PathVariable Long postId,
                                  @AuthenticationPrincipal UserVo userVo,
@@ -59,5 +64,11 @@ public class PostController {
                                       @AuthenticationPrincipal UserVo userVo) {
         return ApiResponse.ok(postService.updatePostStatusToDelete(postId, userVo));
 
+    }
+
+    @PostMapping("{postId}/like")
+    public ApiResponse<LikeToggleResponse> likeStatus(@AuthenticationPrincipal UserVo userVo,
+                                     @PathVariable Long postId) {
+        return ApiResponse.ok(postService.toggleLike(userVo, postId));
     }
 }

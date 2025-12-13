@@ -1,4 +1,4 @@
-package com.example.climbingnav.community.dto;
+package com.example.climbingnav.community.dto.post;
 
 import java.util.List;
 

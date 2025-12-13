@@ -1,8 +1,8 @@
-package com.example.climbingnav.community.dto;
+package com.example.climbingnav.community.dto.post;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record PostUpdateRequest(
+public record PostSaveRequest(
         @NotBlank
         String title,
 
