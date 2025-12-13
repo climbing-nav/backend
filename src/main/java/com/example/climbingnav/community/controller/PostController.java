@@ -23,7 +23,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping(value = "/save", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ApiResponse<Map<String, String>> savePost(@AuthenticationPrincipal UserVo userVo,
+    public ApiResponse<Map<String, String>> save(@AuthenticationPrincipal UserVo userVo,
                                       @RequestBody @Valid PostSaveRequest postSaveRequest,
                                       @RequestPart(value = "files", required = false)List<MultipartFile> files) {
         Long postId = postService.createPost(userVo, postSaveRequest, null);
