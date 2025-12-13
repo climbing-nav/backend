@@ -44,6 +44,7 @@ public class PostService {
                 .title(postSaveRequest.title())
                 .content(postSaveRequest.content())
                 .category(category)
+                .likeCount(0L)
                 .user(user)
                 .status(StatusType.ACTIVE)
                 .build();
