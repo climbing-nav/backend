@@ -1,6 +1,6 @@
 package com.example.climbingnav.community.dto.post;
 
-import com.example.climbingnav.community.dto.CommentsResponse;
+import com.example.climbingnav.community.dto.comment.CommentsResponse;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.UploadFile;
 

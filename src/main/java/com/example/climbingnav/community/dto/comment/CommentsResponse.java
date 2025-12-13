@@ -1,7 +1,6 @@
-package com.example.climbingnav.community.dto;
+package com.example.climbingnav.community.dto.comment;
 
 import com.example.climbingnav.community.entity.Comment;
-import com.example.climbingnav.community.entity.Post;
 
 import java.time.format.DateTimeFormatter;
 
