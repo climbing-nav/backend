@@ -2,8 +2,11 @@ package com.example.climbingnav.community.entity;
 
 import com.example.climbingnav.auth.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(
         uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "post_id"})}
@@ -19,4 +22,13 @@ public class PostLike {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Post post;
+
+    private PostLike(User user, Post post) {
+        this.user = user;
+        this.post = post;
+    }
+
+    public static PostLike of(User user, Post post) {
+        return new PostLike(user, post);
+    }
 }

@@ -39,9 +39,6 @@ public class Post extends BaseEntity {
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostLike> likes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UploadFile> files = new ArrayList<>();
 
@@ -49,6 +46,8 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private StatusType status = StatusType.ACTIVE;
+
+    private Long likeCount = 0L;
 
     public void changeStatus(StatusType statusType) {
         this.status = statusType;
@@ -58,5 +57,10 @@ public class Post extends BaseEntity {
         this.title = title;
         this.content = content;
         this.category.changeCode(code);
+    }
+
+    public void increaseLikeCount() {this.likeCount++;}
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
     }
 }

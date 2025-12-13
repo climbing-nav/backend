@@ -1,4 +1,4 @@
-package com.example.climbingnav.community.dto;
+package com.example.climbingnav.community.dto.post;
 
 public record PostListResponse(
         Long id,
@@ -6,7 +6,7 @@ public record PostListResponse(
        String author,
        String avatarUrl,
        String content,
-       int likeCount,
+       Long likeCount,
        int commentsCount,
        String categoryName,
        String createdAt

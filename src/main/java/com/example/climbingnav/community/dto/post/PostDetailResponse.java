@@ -1,5 +1,6 @@
-package com.example.climbingnav.community.dto;
+package com.example.climbingnav.community.dto.post;
 
+import com.example.climbingnav.community.dto.CommentsResponse;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.UploadFile;
 
@@ -15,7 +16,7 @@ public record PostDetailResponse(
         String avatarUrl,
 
         List<CommentsResponse> comments,
-        int likeCount,
+        Long likeCount,
         List<String> fileNames,
 
         String createdAt
@@ -31,7 +32,7 @@ public record PostDetailResponse(
                 post.getComments().stream()
                         .map(CommentsResponse::from)
                         .toList(),
-                post.getLikes().size(),
+                post.getLikeCount(),
                 post.getFiles().stream()
                         .map(UploadFile::getStoredName)
                         .toList(),
