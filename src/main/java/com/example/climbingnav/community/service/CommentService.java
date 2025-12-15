@@ -28,7 +28,7 @@ public class CommentService {
         Post post = postRepository.findById(commentSaveRequest.postId())
                 .orElseThrow(() -> new CustomException(ResponseCode.BAD_REQUEST, "존재하지 않는 게시글입니다."));
 
-        User user = userRepository.findByIdAndNickname(userVo.userId(), userVo.nickname())
+        User user = userRepository.findById(userVo.userId())
                 .orElseThrow(() -> new CustomException(ResponseCode.UNAUTHORIZED, "로그인이 필요합니다."));
 
         Comment comment = Comment.builder()
