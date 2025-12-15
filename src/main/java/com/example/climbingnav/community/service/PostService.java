@@ -20,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -62,28 +64,38 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostDetailResponse getPostDetail(Long postId) {
+    public PostDetailResponse getPostDetail(Long postId, UserVo userVo) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "조회하신 게시글을 찾을 수 없습니다."));
+
+        boolean isLiked = postLikeRepository.existsByUser_IdAndPost_Id(userVo.userId(), postId);
 
         if (post.getStatus() != StatusType.ACTIVE) {
             throw new CustomException(ResponseCode.BAD_REQUEST, "이미 삭제되었거나 비활성화된 게시글입니다.");
         }
 
-        return PostDetailResponse.from(post);
+        return PostDetailResponse.from(post, isLiked);
     }
 
     @Transactional(readOnly = true)
-    public PostSliceResponse getPostsList(String boardCode, Long cursorId) {
+    public PostSliceResponse getPostsList(String boardCode, Long cursorId, UserVo userVo) {
         List<Post> posts = postRepository.findActivePostsByCategory(
                 boardCode, cursorId, PageRequest.of(0, 21)
         );
 
         boolean hasNext = posts.size() == 21;
 
+        List<Post> displayPosts = hasNext ? posts.subList(0, 20) : posts;
+
         Long nextCursorId = hasNext ? posts.get(19).getId() : null;
 
-        List<Post> displayPosts = hasNext ? posts.subList(0, 20) : posts;
+        List<Long> postIds = displayPosts.stream()
+                .map(Post::getId)
+                .toList();
+
+        Set<Long> likedPostIds = userVo.userId() == null
+                ? Set.of()
+                : new HashSet<>(postLikeRepository.findLikedPostIds(userVo.userId(), postIds));
 
         List<PostListResponse> postList = displayPosts.stream()
                 .map(p -> new PostListResponse(
@@ -95,6 +107,7 @@ public class PostService {
                         p.getLikeCount(),
                         p.getComments().size(),
                         p.getCategory().getName(),
+                        likedPostIds.contains(p.getId()),
                         p.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 ))
                 .toList();
@@ -154,8 +167,8 @@ public class PostService {
         User user = userRepository.findById(userVo.userId())
                 .orElseThrow(() -> new CustomException(ResponseCode.UNAUTHORIZED, "존재하지 않는 사용자입니다."));
 
-        postLikeRepository.save(PostLike.of(user, post));
         post.increaseLikeCount();
+        postLikeRepository.save(PostLike.of(user, post));
         return new LikeToggleResponse(true, post.getLikeCount());
     }
 }

@@ -1,6 +1,5 @@
 package com.example.climbingnav.community.entity;
 
-import com.example.climbingnav.community.entity.constants.StatusType;
 import jakarta.persistence.*;
 import lombok.*;
 

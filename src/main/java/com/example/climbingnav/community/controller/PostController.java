@@ -32,14 +32,16 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ApiResponse<PostDetailResponse> getOnePost(@PathVariable Long postId) {
-        return ApiResponse.ok(postService.getPostDetail(postId));
+    public ApiResponse<PostDetailResponse> getOnePost(@PathVariable Long postId,
+                                                      @AuthenticationPrincipal UserVo userVo) {
+        return ApiResponse.ok(postService.getPostDetail(postId, userVo));
     }
 
     @GetMapping
     public ApiResponse<PostSliceResponse> getAllPosts(@RequestParam(required = false) Long cursorId,
-                                                      @RequestParam(required = false) String boardCode) {
-        return ApiResponse.ok(postService.getPostsList(boardCode, cursorId));
+                                                      @RequestParam(required = false) String boardCode,
+                                                      @AuthenticationPrincipal UserVo userVo) {
+        return ApiResponse.ok(postService.getPostsList(boardCode, cursorId, userVo));
     }
 
     @GetMapping("/my-posts")

@@ -9,5 +9,6 @@ public record PostListResponse(
        Long likeCount,
        int commentsCount,
        String categoryName,
+       boolean isLiked,
        String createdAt
 ) {}

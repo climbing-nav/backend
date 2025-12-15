@@ -17,11 +17,13 @@ public record PostDetailResponse(
 
         List<CommentsResponse> comments,
         Long likeCount,
+
+        boolean isLiked,
         List<String> fileNames,
 
         String createdAt
 ) {
-    public static PostDetailResponse from(Post post) {
+    public static PostDetailResponse from(Post post, boolean isLiked) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getCategory().getName(),
@@ -33,6 +35,7 @@ public record PostDetailResponse(
                         .map(CommentsResponse::from)
                         .toList(),
                 post.getLikeCount(),
+                isLiked,
                 post.getFiles().stream()
                         .map(UploadFile::getStoredName)
                         .toList(),
