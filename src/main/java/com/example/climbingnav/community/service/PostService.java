@@ -153,6 +153,7 @@ public class PostService {
         post.update(postUpdateRequest.title(), postUpdateRequest.content(), postUpdateRequest.boardCode());
     }
 
+    @Transactional
     public LikeToggleResponse toggleLike(UserVo userVo, Long postId) {
         Post post = postRepository.findByIdAndStatus(postId, StatusType.ACTIVE)
                 .orElseThrow(() -> new CustomException(ResponseCode.BAD_REQUEST, "존재하지 않는 게시글입니다."));
