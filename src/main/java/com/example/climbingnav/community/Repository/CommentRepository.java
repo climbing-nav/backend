@@ -14,5 +14,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             set c.status = :status
             where c.post.id = :postId
     """)
-    void updateStatusByPostId(Long postId, StatusType statusType);
+    void updateStatusByPostId(Long postId, StatusType status);
 }
