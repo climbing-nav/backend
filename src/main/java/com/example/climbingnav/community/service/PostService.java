@@ -5,13 +5,16 @@ import com.example.climbingnav.auth.repository.UserRepository;
 import com.example.climbingnav.community.Repository.CategoryRepository;
 import com.example.climbingnav.community.Repository.PostLikeRepository;
 import com.example.climbingnav.community.Repository.PostRepository;
+import com.example.climbingnav.community.dto.file.UploadResult;
 import com.example.climbingnav.community.dto.post.*;
 import com.example.climbingnav.community.entity.Category;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.PostLike;
+import com.example.climbingnav.community.entity.UploadFile;
 import com.example.climbingnav.community.entity.constants.StatusType;
 import com.example.climbingnav.global.base.UserVo;
 import com.example.climbingnav.global.base.types.ResponseCode;
+import com.example.climbingnav.global.client.S3Uploader;
 import com.example.climbingnav.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -19,11 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PostLikeRepository postLikeRepository;
+    private final S3Uploader s3Uploader;
 
     @Transactional
     public Long createPost(UserVo userVo, PostSaveRequest postSaveRequest, List<MultipartFile> files) {
@@ -53,9 +55,15 @@ public class PostService {
 
         if (files != null) {
             for (MultipartFile file : files) {
-                if (file.isEmpty()) continue;
+                if (file == null || file.isEmpty()) continue;
+                UploadResult result = s3Uploader.upload(file, userVo.userId());
 
-
+                post.addFile(UploadFile.builder()
+                                .url(result.url())
+                                .s3Key(result.key())
+                                .originalName(result.originalName())
+                                .size(result.size())
+                                .build());
             }
         }
 

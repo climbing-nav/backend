@@ -14,14 +14,11 @@ public class UploadFile {
     private Long id;
 
     private String originalName;
-    private String storedName;
     private String url;
+    private String s3Key;
+    private Long size;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
 }
