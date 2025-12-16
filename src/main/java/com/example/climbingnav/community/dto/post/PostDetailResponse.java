@@ -37,7 +37,7 @@ public record PostDetailResponse(
                 post.getLikeCount(),
                 isLiked,
                 post.getFiles().stream()
-                        .map(UploadFile::getStoredName)
+                        .map(UploadFile::getUrl)
                         .toList(),
                 post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         );
