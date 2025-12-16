@@ -3,14 +3,12 @@ package com.example.climbingnav.community.service;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.repository.UserRepository;
 import com.example.climbingnav.community.Repository.CategoryRepository;
+import com.example.climbingnav.community.Repository.CommentRepository;
 import com.example.climbingnav.community.Repository.PostLikeRepository;
 import com.example.climbingnav.community.Repository.PostRepository;
 import com.example.climbingnav.community.dto.file.UploadResult;
 import com.example.climbingnav.community.dto.post.*;
-import com.example.climbingnav.community.entity.Category;
-import com.example.climbingnav.community.entity.Post;
-import com.example.climbingnav.community.entity.PostLike;
-import com.example.climbingnav.community.entity.UploadFile;
+import com.example.climbingnav.community.entity.*;
 import com.example.climbingnav.community.entity.constants.StatusType;
 import com.example.climbingnav.global.base.UserVo;
 import com.example.climbingnav.global.base.types.ResponseCode;
@@ -22,9 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +33,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PostLikeRepository postLikeRepository;
+    private final CommentRepository commentRepository;
     private final S3Uploader s3Uploader;
 
     @Transactional
@@ -145,6 +146,8 @@ public class PostService {
         }
 
         post.changeStatus(StatusType.DELETED);
+
+        commentRepository.updateStatusByPostId(post.getId(), StatusType.DELETED);
 
         return "success";
     }
