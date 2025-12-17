@@ -7,10 +7,7 @@ import com.example.climbingnav.global.base.UserVo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -26,5 +23,12 @@ public class CommentController {
         Long commentId = commentService.saveComment(commentSaveRequest, userVo);
 
         return ApiResponse.ok(Map.of("commentId", commentId.toString()));
+    }
+
+    @DeleteMapping("/{commentId}")
+    public ApiResponse<String> delete(@PathVariable Long commentId,
+                                      @AuthenticationPrincipal UserVo userVo) {
+        return ApiResponse.ok(commentService.updateCommentStatusToDelete(commentId, userVo));
+
     }
 }

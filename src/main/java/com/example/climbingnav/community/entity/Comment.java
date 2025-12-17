@@ -33,4 +33,8 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private StatusType status = StatusType.ACTIVE;
+
+    public void changeStatus(StatusType statusType) {
+        this.status = statusType;
+    }
 }
