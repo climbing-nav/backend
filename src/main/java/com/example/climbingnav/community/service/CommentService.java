@@ -41,4 +41,21 @@ public class CommentService {
         Comment savedComment = commentRepository.save(comment);
         return savedComment.getId();
     }
+
+    public String updateCommentStatusToDelete(Long commentId, UserVo userVo) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "존재하지 않는 댓글입니다."));
+
+        if(!comment.getUser().getEmail().equals(userVo.email())) {
+            throw new CustomException(ResponseCode.FORBIDDEN, "해당 댓글 작성자만 삭제가 가능합니다.");
+        }
+
+        if(comment.getStatus() == StatusType.DELETED) {
+            throw new CustomException(ResponseCode.NOT_FOUND, "해당 댓글은 이미 삭제되었습니다.");
+        }
+
+        comment.changeStatus(StatusType.DELETED);
+
+        return "success";
+    }
 }
