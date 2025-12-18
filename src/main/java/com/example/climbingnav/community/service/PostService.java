@@ -114,6 +114,7 @@ public class PostService {
                         p.getUser().getAvatarUrl(),
                         p.getContent(),
                         p.getLikeCount(),
+                        p.getComments().stream().map(Comment::getId).toList(),
                         p.getComments().size(),
                         p.getCategory().getName(),
                         likedPostIds.contains(p.getId()),
