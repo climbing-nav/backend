@@ -3,6 +3,7 @@ package com.example.climbingnav.community.dto.post;
 import com.example.climbingnav.community.dto.comment.CommentsResponse;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.UploadFile;
+import com.example.climbingnav.community.entity.constants.StatusType;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -32,6 +33,7 @@ public record PostDetailResponse(
                 post.getUser().getNickname(),
                 post.getUser().getAvatarUrl(),
                 post.getComments().stream()
+                        .filter(c -> c.getStatus().equals(StatusType.ACTIVE))
                         .map(CommentsResponse::from)
                         .toList(),
                 post.getLikeCount(),

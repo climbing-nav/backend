@@ -114,7 +114,9 @@ public class PostService {
                         p.getUser().getAvatarUrl(),
                         p.getContent(),
                         p.getLikeCount(),
-                        p.getComments().size(),
+                        p.getComments().stream()
+                                .filter(c -> c.getStatus().equals(StatusType.ACTIVE))
+                                .toList().size(),
                         p.getCategory().getName(),
                         likedPostIds.contains(p.getId()),
                         p.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
