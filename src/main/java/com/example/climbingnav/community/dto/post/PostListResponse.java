@@ -11,7 +11,6 @@ public record PostListResponse(
        String avatarUrl,
        String content,
        Long likeCount,
-       List<Long> commentIds,
        int commentsCount,
        String categoryName,
        boolean isLiked,
