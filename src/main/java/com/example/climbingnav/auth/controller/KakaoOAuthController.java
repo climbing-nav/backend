@@ -59,6 +59,7 @@ public class KakaoOAuthController {
         refreshTokenService.saveRefreshToken(user.getId(), refresh);
 
         ResponseCookie refreshCookie = ResponseCookie.from("REFRESH", refresh)
+                .sameSite("Strict")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -66,7 +67,7 @@ public class KakaoOAuthController {
                 .build();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.COOKIE, refreshCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         headers.add("Authorization", "Bearer " + access);
         headers.add("X-Access-Seconds", accessSeconds);
         headers.add("X-Refresh-Seconds", String.valueOf(refreshSeconds));

@@ -67,7 +67,7 @@ public class GoogleOAuthController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
-        headers.add(HttpHeaders.COOKIE, refreshCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         headers.add("X-Access-Seconds", accessSeconds);
         headers.add("X-Refresh-Seconds", String.valueOf(refreshSeconds));
 
