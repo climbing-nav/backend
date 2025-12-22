@@ -22,11 +22,11 @@ import java.util.Map;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping(value = "/save", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Map<String, String>> save(@AuthenticationPrincipal UserVo userVo,
-                                      @RequestBody @Valid PostSaveRequest postSaveRequest,
+                                      @RequestPart("post") @Valid PostSaveRequest postSaveRequest,
                                       @RequestPart(value = "files", required = false)List<MultipartFile> files) {
-        Long postId = postService.createPost(userVo, postSaveRequest, null);
+        Long postId = postService.createPost(userVo, postSaveRequest, files);
 
         return ApiResponse.ok(Map.of("postId", postId.toString()));
     }
