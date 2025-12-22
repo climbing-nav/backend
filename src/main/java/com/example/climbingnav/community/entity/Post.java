@@ -59,10 +59,6 @@ public class Post extends BaseEntity {
         this.category.changeCode(code);
     }
 
-    public void addFile(UploadFile file) {
-        this.addFile(file);
-    }
-
     public void increaseLikeCount() {this.likeCount++;}
     public void decreaseLikeCount() {
         this.likeCount = Math.max(0, this.likeCount - 1);
