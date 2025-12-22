@@ -2,10 +2,7 @@ package com.example.climbingnav.community.service;
 
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.repository.UserRepository;
-import com.example.climbingnav.community.Repository.CategoryRepository;
-import com.example.climbingnav.community.Repository.CommentRepository;
-import com.example.climbingnav.community.Repository.PostLikeRepository;
-import com.example.climbingnav.community.Repository.PostRepository;
+import com.example.climbingnav.community.Repository.*;
 import com.example.climbingnav.community.dto.file.UploadResult;
 import com.example.climbingnav.community.dto.post.*;
 import com.example.climbingnav.community.entity.*;
@@ -33,6 +30,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final PostLikeRepository postLikeRepository;
+    private final UploadFileRepository uploadFileRepository;
     private final CommentRepository commentRepository;
     private final S3Uploader s3Uploader;
 
@@ -44,31 +42,17 @@ public class PostService {
         User user = userRepository.findByEmail(userVo.email())
                 .orElseThrow(() -> new CustomException(ResponseCode.UNAUTHORIZED, "해당 계정은 존재하지 않는 계정입니다."));
 
-
-        Post post = Post.builder()
+        Post savedPost = postRepository.save(Post.builder()
                 .title(postSaveRequest.title())
                 .content(postSaveRequest.content())
                 .category(category)
                 .likeCount(0L)
                 .user(user)
                 .status(StatusType.ACTIVE)
-                .build();
+                .build());
 
-        if (files != null) {
-            for (MultipartFile file : files) {
-                if (file == null || file.isEmpty()) continue;
-                UploadResult result = s3Uploader.upload(file, userVo.userId());
+        saveFiles(savedPost, userVo.userId(), files);
 
-                post.addFile(UploadFile.builder()
-                                .url(result.url())
-                                .s3Key(result.key())
-                                .originalName(result.originalName())
-                                .size(result.size())
-                                .build());
-            }
-        }
-
-        Post savedPost = postRepository.save(post);
         return savedPost.getId();
     }
 
@@ -184,5 +168,23 @@ public class PostService {
         post.increaseLikeCount();
         postLikeRepository.save(PostLike.of(user, post));
         return new LikeToggleResponse(true, post.getLikeCount());
+    }
+
+    private void saveFiles(Post post, Long userId, List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) return;
+
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) continue;
+
+            UploadResult result = s3Uploader.upload(file, userId);
+
+            uploadFileRepository.save(UploadFile.builder()
+                    .post(post)
+                    .url(result.url())
+                    .s3Key(result.key())
+                    .originalName(result.originalName())
+                    .size(result.size())
+                    .build());
+        }
     }
 }
