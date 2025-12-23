@@ -1,6 +1,8 @@
 package com.example.climbingnav.global.client;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.example.climbingnav.community.dto.file.UploadResult;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -49,6 +52,16 @@ public class S3Uploader {
 
         String url = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key);
         return new UploadResult(key, url, file.getOriginalFilename(), file.getContentType(), file.getSize());
+    }
+
+    public String generatePresignedGetUrl(String key) {
+        Date expiration = new Date(System.currentTimeMillis() + 30 * 60 * 1000L);
+
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, key)
+                .withMethod(HttpMethod.GET)
+                .withExpiration(expiration);
+
+        return amazonS3.generatePresignedUrl(request).toString();
     }
 
     private void validateFile(MultipartFile file) {
