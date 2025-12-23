@@ -3,6 +3,7 @@ package com.example.climbingnav.community.service;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.repository.UserRepository;
 import com.example.climbingnav.community.Repository.*;
+import com.example.climbingnav.community.dto.file.FileResponse;
 import com.example.climbingnav.community.dto.file.UploadResult;
 import com.example.climbingnav.community.dto.post.*;
 import com.example.climbingnav.community.entity.*;
@@ -17,11 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +90,18 @@ public class PostService {
                 ? Set.of()
                 : new HashSet<>(postLikeRepository.findLikedPostIds(userVo.userId(), postIds));
 
+        List<UploadFile> files = uploadFileRepository.findFilesByPostIds(postIds);
+
+        Map<Long, List<FileResponse>> fileMap = files.stream()
+                .collect(Collectors.groupingBy(
+                        f -> f.getPost().getId(),
+                        Collectors.mapping(
+                                f -> new FileResponse(f.getId(), s3Uploader.
+                                        generatePresignedGetUrl(f.getS3Key())),
+                                Collectors.toList()
+                        )
+                ));
+
         List<PostListResponse> postList = displayPosts.stream()
                 .map(p -> new PostListResponse(
                         p.getId(),
@@ -100,8 +112,9 @@ public class PostService {
                         p.getLikeCount(),
                         p.getComments().stream()
                                 .filter(c -> c.getStatus().equals(StatusType.ACTIVE))
-                                .toList().size(),
+                                .count(),
                         p.getCategory().getName(),
+                        fileMap.getOrDefault(p.getId(), List.of()),
                         likedPostIds.contains(p.getId()),
                         p.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 ))
