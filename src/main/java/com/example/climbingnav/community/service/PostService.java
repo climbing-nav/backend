@@ -6,7 +6,10 @@ import com.example.climbingnav.community.Repository.*;
 import com.example.climbingnav.community.dto.file.FileResponse;
 import com.example.climbingnav.community.dto.file.UploadResult;
 import com.example.climbingnav.community.dto.post.*;
-import com.example.climbingnav.community.entity.*;
+import com.example.climbingnav.community.entity.Category;
+import com.example.climbingnav.community.entity.Post;
+import com.example.climbingnav.community.entity.PostLike;
+import com.example.climbingnav.community.entity.UploadFile;
 import com.example.climbingnav.community.entity.constants.StatusType;
 import com.example.climbingnav.global.base.UserVo;
 import com.example.climbingnav.global.base.types.ResponseCode;
@@ -18,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,7 +69,14 @@ public class PostService {
             throw new CustomException(ResponseCode.BAD_REQUEST, "이미 삭제되었거나 비활성화된 게시글입니다.");
         }
 
-        return PostDetailResponse.from(post, isLiked);
+        List<FileResponse> files = uploadFileRepository.findAllByPost_Id(postId).stream()
+                .map(f -> new FileResponse(
+                        f.getId(),
+                        s3Uploader.generatePresignedGetUrl(f.getS3Key())
+                ))
+                .toList();
+
+        return PostDetailResponse.from(post, isLiked, files);
     }
 
     @Transactional(readOnly = true)

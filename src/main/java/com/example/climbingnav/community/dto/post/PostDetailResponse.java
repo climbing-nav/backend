@@ -1,6 +1,7 @@
 package com.example.climbingnav.community.dto.post;
 
 import com.example.climbingnav.community.dto.comment.CommentsResponse;
+import com.example.climbingnav.community.dto.file.FileResponse;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.UploadFile;
 import com.example.climbingnav.community.entity.constants.StatusType;
@@ -20,11 +21,11 @@ public record PostDetailResponse(
         Long likeCount,
 
         boolean isLiked,
-        List<String> fileNames,
+        List<FileResponse> files,
 
         String createdAt
 ) {
-    public static PostDetailResponse from(Post post, boolean isLiked) {
+    public static PostDetailResponse from(Post post, boolean isLiked, List<FileResponse> files) {
         return new PostDetailResponse(
                 post.getId(),
                 post.getCategory().getName(),
@@ -38,9 +39,7 @@ public record PostDetailResponse(
                         .toList(),
                 post.getLikeCount(),
                 isLiked,
-                post.getFiles().stream()
-                        .map(UploadFile::getUrl)
-                        .toList(),
+                files,
                 post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         );
     }

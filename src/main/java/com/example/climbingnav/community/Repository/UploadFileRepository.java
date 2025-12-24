@@ -11,4 +11,6 @@ public interface UploadFileRepository extends JpaRepository<UploadFile, Long> {
 
     @Query("select f from UploadFile f where f.post.id in :postIds")
     List<UploadFile> findFilesByPostIds(@Param("postIds") List<Long> postIds);
+
+    List<UploadFile> findAllByPost_Id(Long postId);
 }
