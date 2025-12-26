@@ -9,6 +9,7 @@ import com.example.climbingnav.global.base.types.ResponseCode;
 import com.example.climbingnav.global.exception.CustomException;
 import com.example.climbingnav.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,29 +25,37 @@ public class TokenController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@CookieValue(value = "REFRESH", required = false) String refresh) {
-        if (refresh == null || !jwtUtil.validateRefresh(refresh)) {
-            throw new CustomException(ResponseCode.UNAUTHORIZED, "refresh 토큰 값이 유효 하지 않습니다. 다시 로그인해주세요.");
+    public ResponseEntity<?> refresh(
+            @CookieValue(value = "REFRESH", required = false) String refresh
+    ) {
+        if (refresh == null || refresh.isBlank()) {
+            throw new CustomException(ResponseCode.UNAUTHORIZED, "refresh 토큰이 없습니다. 다시 로그인해주세요.");
         }
 
-        String userId = jwtUtil.getSubject(refresh);
+        if (!jwtUtil.validateRefresh(refresh)) {
+            throw new CustomException(ResponseCode.UNAUTHORIZED, "refresh 토큰 값이 유효하지 않습니다. 다시 로그인해주세요.");
+        }
 
-        if (!refreshTokenService.validateRefreshToken(Long.valueOf(userId), refresh)) {
+        Long userId = Long.valueOf(jwtUtil.getSubject(refresh));
+
+        if (!refreshTokenService.validateRefreshToken(userId, refresh)) {
             throw new CustomException(ResponseCode.UNAUTHORIZED, "토큰이 유효하지 않습니다.");
         }
 
-        User user = userService.getUserProfile(userId);
+        User user = userService.getUserProfile(String.valueOf(userId));
 
-        String accessToken = jwtUtil.createAccess(userId, Map.of(
+        String accessToken = jwtUtil.createAccess(String.valueOf(userId), Map.of(
                 "email", user.getEmail(),
-                "nickname", user.getNickname()));
-
-        return ResponseEntity.ok(Map.of(
-                "accessToken", accessToken,
-                "tokenType", "Bearer",
-                "expireIn", 3600
+                "nickname", user.getNickname()
         ));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+
+        return ResponseEntity.ok()
+                .headers(headers).build();
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal UserVo userVo) {
