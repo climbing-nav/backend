@@ -24,7 +24,21 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable
     );
 
-    List<Post> findByUser_IdAndStatusOrderByIdDesc(Long userId, StatusType status);
-
     Optional<Post> findByIdAndStatus(Long postId, StatusType status);
+
+    @Query("""
+    SELECT p FROM Post p
+    WHERE p.user.id = :userId
+      AND (:code IS NULL OR p.category.code = :code)
+      AND p.status = com.example.climbingnav.community.entity.constants.StatusType.ACTIVE
+      AND (:cursorId IS NULL OR p.id < :cursorId)
+    ORDER BY p.id DESC
+    """)
+    List<Post> findMyActivePostsByCategory(
+            Long userId,
+            String code,
+            Long cursorId,
+            Pageable pageable
+    );
+
 }
