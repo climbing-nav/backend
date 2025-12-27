@@ -40,7 +40,7 @@ public class UserController {
         );
     }
 
-    @GetMapping("/mypage/count")
+    @GetMapping("/post/count")
     public ApiResponse<Long> myPostsCount(@AuthenticationPrincipal UserVo userVo) {
         return ApiResponse.ok(userService.getMyPostsCount(userVo));
     }
