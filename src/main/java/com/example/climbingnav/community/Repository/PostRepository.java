@@ -1,6 +1,5 @@
 package com.example.climbingnav.community.Repository;
 
-import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.community.entity.Post;
 import com.example.climbingnav.community.entity.constants.StatusType;
 import org.springframework.data.domain.Pageable;
@@ -40,5 +39,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+    SELECT COUNT(p)
+    FROM Post p
+    WHERE p.user.id = :userId
+      AND p.status = com.example.climbingnav.community.entity.constants.StatusType.ACTIVE
+    """)
+    Long countMyPosts(Long userId);
 
 }

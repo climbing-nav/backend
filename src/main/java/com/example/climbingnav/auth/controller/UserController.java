@@ -4,6 +4,7 @@ import com.example.climbingnav.auth.dto.UserProfileResponse;
 import com.example.climbingnav.auth.entity.User;
 import com.example.climbingnav.auth.service.UserService;
 import com.example.climbingnav.global.base.ApiResponse;
+import com.example.climbingnav.global.base.UserVo;
 import com.example.climbingnav.global.base.types.ResponseCode;
 import com.example.climbingnav.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +38,10 @@ public class UserController {
                         )
                 )
         );
+    }
+
+    @GetMapping("/mypage/count")
+    public ApiResponse<Long> myPostsCount(@AuthenticationPrincipal UserVo userVo) {
+        return ApiResponse.ok(userService.getMyPostsCount(userVo));
     }
 }
