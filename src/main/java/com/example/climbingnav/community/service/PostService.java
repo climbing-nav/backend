@@ -80,7 +80,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostSliceResponse getPostsList(String boardCode, Long cursorId, UserVo userVo) {
+    public PostSliceResponse<PostListResponse> getAllPosts(String boardCode, Long cursorId, UserVo userVo) {
         List<Post> posts = postRepository.findActivePostsByCategory(
                 boardCode, cursorId, PageRequest.of(0, 21)
         );
@@ -129,15 +129,49 @@ public class PostService {
                 ))
                 .toList();
 
-        return new PostSliceResponse(postList, hasNext, nextCursorId);
+        return new PostSliceResponse<>(postList, hasNext, nextCursorId);
     }
 
     @Transactional(readOnly = true)
-    public String getMyPostsList(UserVo userVo) {
-        List<Post> posts = postRepository.
-                findByUser_IdAndStatusOrderByIdDesc(userVo.userId(), StatusType.ACTIVE);
+    public PostSliceResponse<MyPostListResponse> getMyPostsList(String boardCode, Long cursorId, UserVo userVo) {
+        List<Post> myPosts = postRepository.findMyActivePostsByCategory(
+                userVo.userId(),
+                boardCode,
+                cursorId,
+                PageRequest.of(0, 21)
+        );
 
-        return "Success";
+        boolean hasNext = myPosts.size() == 21;
+
+        List<Post> displayPosts = hasNext ? myPosts.subList(0, 20) : myPosts;
+
+        Long nextCursorId = hasNext ? myPosts.get(19).getId() : null;
+
+        List<Long> postIds = displayPosts.stream()
+                .map(Post::getId)
+                .toList();
+
+        Set<Long> likedPostIds = userVo.userId() == null
+                ? Set.of()
+                : new HashSet<>(postLikeRepository.findLikedPostIds(userVo.userId(), postIds));
+
+        List<MyPostListResponse> myPostsList = displayPosts.stream()
+                .map(p -> new MyPostListResponse(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getUser().getNickname(),
+                        p.getContent(),
+                        p.getLikeCount(),
+                        p.getComments().stream()
+                                .filter(c -> c.getStatus().equals(StatusType.ACTIVE))
+                                .count(),
+                        p.getCategory().getName(),
+                        likedPostIds.contains(p.getId()),
+                        p.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                ))
+                .toList();
+
+        return new PostSliceResponse<>(myPostsList, hasNext, nextCursorId);
     }
 
     @Transactional

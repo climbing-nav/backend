@@ -38,18 +38,18 @@ public class PostController {
     }
 
     @GetMapping
-    public ApiResponse<PostSliceResponse> getAllPosts(@RequestParam(required = false) Long cursorId,
+    public ApiResponse<PostSliceResponse<PostListResponse>> getAllPosts(@RequestParam(required = false) Long cursorId,
                                                       @RequestParam(required = false) String boardCode,
                                                       @AuthenticationPrincipal UserVo userVo) {
-        return ApiResponse.ok(postService.getPostsList(boardCode, cursorId, userVo));
+        return ApiResponse.ok(postService.getAllPosts(boardCode, cursorId, userVo));
     }
 
     @GetMapping("/my-posts")
-    public ApiResponse<?> viewMyWriting(@AuthenticationPrincipal UserVo userVo) {
-        // 내가 쓴 게시글 목록 조회
-        String content = postService.getMyPostsList(userVo);
-
-        return null;
+    public ApiResponse<PostSliceResponse<MyPostListResponse>> viewMyPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String boardCode,
+            @AuthenticationPrincipal UserVo userVo) {
+        return ApiResponse.ok(postService.getMyPostsList(boardCode, cursorId, userVo));
     }
 
     @PatchMapping("/{postId}")
