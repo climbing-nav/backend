@@ -189,6 +189,10 @@ public class PostService {
             throw new CustomException(ResponseCode.NOT_FOUND, "조회하신 게시글은 이미 삭제되었습니다.");
         }
 
+        for (UploadFile f : post.getFiles()) {
+            f.changeStatus(StatusType.DELETED);
+        }
+
         post.changeStatus(StatusType.DELETED);
 
         commentRepository.updateStatusByPostId(post.getId(), StatusType.DELETED);
