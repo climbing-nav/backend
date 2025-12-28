@@ -70,6 +70,7 @@ public class PostService {
         }
 
         List<FileResponse> files = uploadFileRepository.findAllByPost_Id(postId).stream()
+                .filter(f -> f.getStatus() == StatusType.ACTIVE)
                 .map(f -> new FileResponse(
                         f.getId(),
                         s3Uploader.generatePresignedGetUrl(f.getS3Key())
@@ -102,6 +103,7 @@ public class PostService {
         List<UploadFile> files = uploadFileRepository.findFilesByPostIds(postIds);
 
         Map<Long, List<FileResponse>> fileMap = files.stream()
+                .filter(f -> f.getStatus() == StatusType.ACTIVE)
                 .collect(Collectors.groupingBy(
                         f -> f.getPost().getId(),
                         Collectors.mapping(
@@ -195,7 +197,10 @@ public class PostService {
     }
 
     @Transactional
-    public void updatePost(Long postId, UserVo userVo, PostUpdateRequest postUpdateRequest) {
+    public void updatePost(Long postId, UserVo userVo,
+                           PostUpdateRequest postUpdateRequest,
+                           List<Long> remainFileIds,
+                           List<MultipartFile> newFiles) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ResponseCode.NOT_FOUND, "존재하지 않는 게시글입니다."));
 
@@ -203,7 +208,32 @@ public class PostService {
             throw new CustomException(ResponseCode.FORBIDDEN, "해당 게시글의 작성자만 수정이 가능합니다.");
         }
 
-        post.update(postUpdateRequest.title(), postUpdateRequest.content(), postUpdateRequest.boardCode());
+        List<Long> remain = remainFileIds == null ? List.of() : remainFileIds;
+
+        for (UploadFile f : post.getFiles()) {
+            if (f.getStatus() == StatusType.ACTIVE && !remain.contains(f.getId())) {
+                f.changeStatus(StatusType.DELETED);
+            }
+        }
+
+        if (newFiles != null) {
+            for (MultipartFile file : newFiles) {
+                if (file == null || file.isEmpty()) continue;
+
+                UploadResult result = s3Uploader.upload(file, userVo.userId());
+
+                uploadFileRepository.save(UploadFile.builder()
+                                .post(post)
+                                .s3Key(result.key())
+                                .url(result.url())
+                                .originalName(file.getOriginalFilename())
+                                .status(StatusType.ACTIVE)
+                                .build());
+            }
+        }
+
+        Category category = categoryRepository.findByCode(postUpdateRequest.boardCode()).orElse(null);
+        post.update(postUpdateRequest.title(), postUpdateRequest.content(), category);
     }
 
     @Transactional
@@ -240,6 +270,7 @@ public class PostService {
                     .s3Key(result.key())
                     .originalName(result.originalName())
                     .size(result.size())
+                    .status(StatusType.ACTIVE)
                     .build());
         }
     }

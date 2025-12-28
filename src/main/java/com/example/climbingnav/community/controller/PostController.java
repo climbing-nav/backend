@@ -52,16 +52,18 @@ public class PostController {
         return ApiResponse.ok(postService.getMyPostsList(boardCode, cursorId, userVo));
     }
 
-    @PatchMapping("/{postId}")
+    @PatchMapping(path = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<?> update(@PathVariable Long postId,
                                  @AuthenticationPrincipal UserVo userVo,
-                                 @RequestBody PostUpdateRequest postUpdateRequest) {
-        postService.updatePost(postId, userVo, postUpdateRequest);
+                                 @RequestPart PostUpdateRequest postUpdateRequest,
+                                 @RequestPart(value = "remainFileIds", required = false) List<Long> remainFileIds,
+                                 @RequestPart(value = "files", required = false)List<MultipartFile> files) {
+        postService.updatePost(postId, userVo, postUpdateRequest, remainFileIds, files);
 
-        return null;
+        return ApiResponse.ok(null);
     }
 
-    @DeleteMapping("/{postId}")
+    @DeleteMapping(value = "/{postId}")
     public ApiResponse<String> delete(@PathVariable Long postId,
                                       @AuthenticationPrincipal UserVo userVo) {
         return ApiResponse.ok(postService.updatePostStatusToDelete(postId, userVo));
