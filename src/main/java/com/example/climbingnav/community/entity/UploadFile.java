@@ -1,5 +1,6 @@
 package com.example.climbingnav.community.entity;
 
+import com.example.climbingnav.community.entity.constants.StatusType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +23,17 @@ public class UploadFile {
     @JoinColumn(name = "post_id")
     private Post post;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private StatusType status = StatusType.ACTIVE;
+
     public  void setPost(Post post) {
         this.post = post;
     }
+
+    public void changeStatus(StatusType statusType) {
+        this.status = statusType;
+    }
+
 }

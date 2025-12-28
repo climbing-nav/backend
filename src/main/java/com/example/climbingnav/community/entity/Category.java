@@ -18,8 +18,4 @@ public class Category {
 
     @Column(length = 30, nullable = false)
     private String code;
-
-    public void changeCode(String code) {
-        this.code = code;
-    }
 }

@@ -53,10 +53,18 @@ public class Post extends BaseEntity {
         this.status = statusType;
     }
 
-    public void update(String title, String content, String code) {
-        this.title = title;
-        this.content = content;
-        this.category.changeCode(code);
+    public void update(String title, String content, Category newCategory) {
+        if (title != null && !title.equals(this.title)) {
+            this.title = title;
+        }
+
+        if (content != null && !content.equals(this.content)) {
+            this.content = content;
+        }
+
+        if (newCategory != null && !this.category.getId().equals(newCategory.getId())) {
+            this.category = newCategory;
+        }
     }
 
     public void increaseLikeCount() {this.likeCount++;}
